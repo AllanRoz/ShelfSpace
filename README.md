@@ -26,6 +26,8 @@
 
 ## About The Project
 
+[![Product Screenshot][product-screenshot]](https://allanroz.github.io/ShelfSpace/)
+
 **ShelfSpace** is a modern web application that lets you build and manage your personal digital library entirely in the browser. Add books, track what you're reading, rate your favorites, organize collections, manage reading lists, and visualize your reading habits — all without an account or a backend.
 
 Built as an offline-first PWA and static React application, all data is stored locally using LocalStorage, making it fast, private, and perfectly suited for hosting on GitHub Pages.
@@ -220,6 +222,7 @@ Live Demo: https://allanroz.github.io/ShelfSpace/
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
+[product-screenshot]: public/shelfspace.png
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://react.dev/
 [Vite.dev]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white
