@@ -6,7 +6,7 @@ import AddBook from './pages/AddBook'
 
 import Bookshelf from './pages/Bookshelf'
 import Collections from './pages/Collections'
-const Stats = () => <div className="p-8"> <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-100">Statistics</h1> <p className="mt-2 text-stone-600 dark:text-stone-400">Your reading stats will appear here.</p> </div>;
+import StatisticsPage from './pages/Stats'
 const Settings = () => <div className="p-8"> <h1 className="text-3xl font-bold text-stone-800 dark:text-stone-100">Settings</h1> <p className="mt-2 text-stone-600 dark:text-stone-400">Manage your library settings.</p> </div>;
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/bookshelf" element={<Bookshelf />} />
         <Route path="/collections" element={<Collections />} />
-        <Route path="/stats" element={<Stats />} />
+        <Route path="/stats" element={<StatisticsPage />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/add" element={<AddBook />} />
       </Routes>
