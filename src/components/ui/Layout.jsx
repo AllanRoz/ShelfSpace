@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Book, LayoutDashboard, BarChart3, Settings, Moon, Sun, Menu, X } from 'lucide-react'
+import { Book, LayoutDashboard, BarChart3, Settings, Moon, Sun, Menu, X, Layers } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export const Layout = ({ children }) => {
@@ -30,6 +30,7 @@ export const Layout = ({ children }) => {
   const navItems = [
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Bookshelf', path: '/bookshelf', icon: Book },
+    { name: 'Collections', path: '/collections', icon: Layers },
     { name: 'Statistics', path: '/stats', icon: BarChart3 },
     { name: 'Settings', path: '/settings', icon: Settings },
   ]
