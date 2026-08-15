@@ -4,19 +4,19 @@ import { storage } from '../utils/storage'
 const LibraryContext = createContext()
 
 export const LibraryProvider = ({ children }) => {
-  const [books, setBooks] = useState([])
-  const [collections, setCollections] = useState([])
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [books, setBooks]               = useState([])
+  const [collections, setCollections]   = useState([])
+  const [readingLists, setReadingLists] = useState([])
+  const [isLoaded, setIsLoaded]         = useState(false)
 
   useEffect(() => {
-    const loadedBooks = storage.getBooks()
-    const loadedCollections = storage.getCollections()
-    
-    setBooks(loadedBooks)
-    setCollections(loadedCollections)
+    setBooks(storage.getBooks())
+    setCollections(storage.getCollections())
+    setReadingLists(storage.getReadingLists())
     setIsLoaded(true)
   }, [])
 
+  // ── Books ──
   const addBook = (bookData) => {
     const newBook = {
       id: Date.now().toString(),
@@ -29,75 +29,118 @@ export const LibraryProvider = ({ children }) => {
       dateFinished: null,
       ...bookData,
     }
-    const updatedBooks = [...books, newBook]
-    setBooks(updatedBooks)
-    storage.saveBooks(updatedBooks)
+    const updated = [...books, newBook]
+    setBooks(updated)
+    storage.saveBooks(updated)
     return newBook
   }
 
   const updateBook = (id, updates) => {
-    const updatedBooks = books.map(book => 
-      book.id === id ? { ...book, ...updates } : book
-    )
-    setBooks(updatedBooks)
-    storage.saveBooks(updatedBooks)
+    const updated = books.map(b => b.id === id ? { ...b, ...updates } : b)
+    setBooks(updated)
+    storage.saveBooks(updated)
   }
 
   const deleteBook = (id) => {
-    const updatedBooks = books.filter(book => book.id !== id)
-    setBooks(updatedBooks)
-    storage.saveBooks(updatedBooks)
-  }
-
-  const addCollection = (name) => {
-    const newCol = {
-      id: Date.now().toString(),
-      name,
-      bookIds: [],
-    }
-    const updatedCols = [...collections, newCol]
+    const updated = books.filter(b => b.id !== id)
+    setBooks(updated)
+    storage.saveBooks(updated)
+    // Also remove from collections and reading lists
+    const updatedCols = collections.map(c => ({ ...c, bookIds: c.bookIds.filter(bid => bid !== id) }))
     setCollections(updatedCols)
     storage.saveCollections(updatedCols)
+    const updatedLists = readingLists.map(l => ({ ...l, bookIds: l.bookIds.filter(bid => bid !== id) }))
+    setReadingLists(updatedLists)
+    storage.saveReadingLists(updatedLists)
+  }
+
+  // ── Collections ──
+  const addCollection = (name) => {
+    const col = { id: Date.now().toString(), name, bookIds: [] }
+    const updated = [...collections, col]
+    setCollections(updated)
+    storage.saveCollections(updated)
   }
 
   const removeCollection = (id) => {
-    const updatedCols = collections.filter(col => col.id !== id)
-    setCollections(updatedCols)
-    storage.saveCollections(updatedCols)
+    const updated = collections.filter(c => c.id !== id)
+    setCollections(updated)
+    storage.saveCollections(updated)
+  }
+
+  const renameCollection = (id, name) => {
+    const updated = collections.map(c => c.id === id ? { ...c, name } : c)
+    setCollections(updated)
+    storage.saveCollections(updated)
   }
 
   const addBookToCollection = (colId, bookId) => {
-    const updatedCols = collections.map(col => 
-      col.id === colId 
-        ? { ...col, bookIds: [...new Set([...col.bookIds, bookId])] } 
-        : col
+    const updated = collections.map(c =>
+      c.id === colId ? { ...c, bookIds: [...new Set([...c.bookIds, bookId])] } : c
     )
-    setCollections(updatedCols)
-    storage.saveCollections(updatedCols)
+    setCollections(updated)
+    storage.saveCollections(updated)
   }
 
   const removeBookFromCollection = (colId, bookId) => {
-    const updatedCols = collections.map(col => 
-      col.id === colId 
-        ? { ...col, bookIds: col.bookIds.filter(id => id !== bookId) } 
-        : col
+    const updated = collections.map(c =>
+      c.id === colId ? { ...c, bookIds: c.bookIds.filter(id => id !== bookId) } : c
     )
-    setCollections(updatedCols)
-    storage.saveCollections(updatedCols)
+    setCollections(updated)
+    storage.saveCollections(updated)
+  }
+
+  // ── Reading Lists ──
+  const addReadingList = (name, description = '') => {
+    const list = {
+      id: Date.now().toString(),
+      name,
+      description,
+      bookIds: [],
+      createdAt: new Date().toISOString(),
+    }
+    const updated = [...readingLists, list]
+    setReadingLists(updated)
+    storage.saveReadingLists(updated)
+    return list
+  }
+
+  const removeReadingList = (id) => {
+    const updated = readingLists.filter(l => l.id !== id)
+    setReadingLists(updated)
+    storage.saveReadingLists(updated)
+  }
+
+  const renameReadingList = (id, name, description) => {
+    const updated = readingLists.map(l =>
+      l.id === id ? { ...l, name, description: description ?? l.description } : l
+    )
+    setReadingLists(updated)
+    storage.saveReadingLists(updated)
+  }
+
+  const addBookToList = (listId, bookId) => {
+    const updated = readingLists.map(l =>
+      l.id === listId ? { ...l, bookIds: [...new Set([...l.bookIds, bookId])] } : l
+    )
+    setReadingLists(updated)
+    storage.saveReadingLists(updated)
+  }
+
+  const removeBookFromList = (listId, bookId) => {
+    const updated = readingLists.map(l =>
+      l.id === listId ? { ...l, bookIds: l.bookIds.filter(id => id !== bookId) } : l
+    )
+    setReadingLists(updated)
+    storage.saveReadingLists(updated)
   }
 
   return (
     <LibraryContext.Provider value={{
-      books,
-      collections,
-      isLoaded,
-      addBook,
-      updateBook,
-      deleteBook,
-      addCollection,
-      removeCollection,
-      addBookToCollection,
-      removeBookFromCollection
+      books, collections, readingLists, isLoaded,
+      addBook, updateBook, deleteBook,
+      addCollection, removeCollection, renameCollection, addBookToCollection, removeBookFromCollection,
+      addReadingList, removeReadingList, renameReadingList, addBookToList, removeBookFromList,
     }}>
       {children}
     </LibraryContext.Provider>
@@ -105,9 +148,7 @@ export const LibraryProvider = ({ children }) => {
 }
 
 export const useLibrary = () => {
-  const context = useContext(LibraryContext)
-  if (!context) {
-    throw new Error('useLibrary must be used within a LibraryProvider')
-  }
-  return context
+  const ctx = useContext(LibraryContext)
+  if (!ctx) throw new Error('useLibrary must be used inside LibraryProvider')
+  return ctx
 }

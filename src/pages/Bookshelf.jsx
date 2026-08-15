@@ -4,7 +4,7 @@ import { useLibrary } from '../context/LibraryContext'
 import BookSpine from '../components/bookshelf/BookSpine'
 import BookDetailModal from '../components/bookshelf/BookDetailModal'
 import { SearchBar, FilterBar } from '../components/ui/SearchFilter'
-import { Search } from 'lucide-react'
+import { Search, ArrowUp, ArrowDown } from 'lucide-react'
 
 const BookshelfPage = () => {
   const { books } = useLibrary()
@@ -13,16 +13,13 @@ const BookshelfPage = () => {
   const [searchTerm, setSearchTerm]       = useState('')
   const [filters, setFilters]             = useState({ genre: '', status: '' })
   const [sortKey, setSortKey]             = useState('dateAdded')
+  const [sortAsc, setSortAsc]             = useState(false)   // false = descending (newest first)
 
   const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }))
+  const handleBookClick = (book) => { setSelectedBook(book); setIsModalOpen(true) }
 
-  const handleBookClick = (book) => {
-    setSelectedBook(book)
-    setIsModalOpen(true)
-  }
-
-  const processedBooks = useMemo(() => books
-    .filter(book => {
+  const processedBooks = useMemo(() => {
+    const filtered = books.filter(book => {
       const q = searchTerm.toLowerCase()
       const matchesSearch =
         book.title.toLowerCase().includes(q) ||
@@ -30,18 +27,26 @@ const BookshelfPage = () => {
         (book.genre || '').toLowerCase().includes(q) ||
         (book.isbn || '').toLowerCase().includes(q) ||
         (book.personalNotes || '').toLowerCase().includes(q)
-      const matchesGenre  = !filters.genre   || book.genre   === filters.genre
-      const matchesStatus = !filters.status  || book.status  === filters.status
+      const matchesGenre  = !filters.genre  || book.genre  === filters.genre
+      const matchesStatus = !filters.status || book.status === filters.status
       return matchesSearch && matchesGenre && matchesStatus
     })
-    .sort((a, b) => {
-      if (sortKey === 'rating')    return (b.rating || 0) - (a.rating || 0)
-      if (sortKey === 'pages')     return (b.pages  || 0) - (a.pages  || 0)
-      if (sortKey === 'dateAdded') return new Date(b.dateAdded) - new Date(a.dateAdded)
-      if (sortKey === 'publicationYear') return (b.publicationYear || 0) - (a.publicationYear || 0)
-      return (a[sortKey] || '').toString().localeCompare((b[sortKey] || '').toString())
-    }),
-  [books, searchTerm, filters, sortKey])
+
+    filtered.sort((a, b) => {
+      let valA, valB
+      if (sortKey === 'rating')           { valA = a.rating || 0;           valB = b.rating || 0 }
+      else if (sortKey === 'pages')       { valA = a.pages  || 0;           valB = b.pages  || 0 }
+      else if (sortKey === 'dateAdded')   { valA = new Date(a.dateAdded);   valB = new Date(b.dateAdded) }
+      else if (sortKey === 'publicationYear') { valA = a.publicationYear || 0; valB = b.publicationYear || 0 }
+      else { valA = (a[sortKey] || '').toString().toLowerCase(); valB = (b[sortKey] || '').toString().toLowerCase() }
+
+      if (valA < valB) return sortAsc ? -1 : 1
+      if (valA > valB) return sortAsc ? 1  : -1
+      return 0
+    })
+
+    return filtered
+  }, [books, searchTerm, filters, sortKey, sortAsc])
 
   const booksPerShelf = 20
   const shelves = []
@@ -64,47 +69,47 @@ const BookshelfPage = () => {
 
         {/* Toolbar */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
           className="flex flex-col md:flex-row gap-3 p-4 bg-white dark:bg-[#1f1a15] border border-stone-200 dark:border-[#2e2720] rounded-2xl shadow-sm"
         >
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
-          <FilterBar filters={filters} setFilter={handleFilterChange} sort={sortKey} setSort={setSortKey} />
+          <div className="flex items-center gap-2">
+            <FilterBar filters={filters} setFilter={handleFilterChange} sort={sortKey} setSort={setSortKey} />
+            {/* Asc/Desc toggle */}
+            <button
+              onClick={() => setSortAsc(v => !v)}
+              title={sortAsc ? 'Ascending' : 'Descending'}
+              className="p-2 rounded-lg border border-stone-200 dark:border-[#2e2720] bg-white dark:bg-[#1f1a15] text-stone-500 dark:text-stone-400 hover:text-accent-warm hover:border-accent-warm/40 transition-all"
+            >
+              {sortAsc ? <ArrowUp size={16} /> : <ArrowDown size={16} />}
+            </button>
+          </div>
         </motion.div>
       </header>
 
       {/* Shelves */}
       <div className="space-y-16 pb-24">
         {shelves.length > 0 ? shelves.map((shelfBooks, shelfIdx) => (
-          <motion.div
-            key={shelfIdx}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
+          <motion.div key={shelfIdx}
+            initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 + shelfIdx * 0.08, duration: 0.5 }}
             className="relative"
           >
-            {/* Books */}
             <div className="flex items-end justify-center gap-0.5 px-4 overflow-x-auto pb-0">
               {shelfBooks.map((book, bookIdx) => (
-                <motion.div
-                  key={book.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <motion.div key={book.id}
+                  initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 + bookIdx * 0.015, duration: 0.35 }}
                 >
                   <BookSpine book={book} onClick={handleBookClick} />
                 </motion.div>
               ))}
             </div>
-
             {/* Shelf board */}
             <div className="relative h-5 w-full bg-gradient-to-b from-[#3d2f1f] to-[#2a1f12] dark:from-[#2a1f12] dark:to-[#1a1008] rounded-sm shadow-lg">
               <div className="absolute top-0 left-0 right-0 h-1 bg-[#5c442a] dark:bg-[#3d2c18] rounded-t-sm" />
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30 rounded-b-sm" />
             </div>
-
-            {/* Shelf brackets */}
             <div className="absolute -bottom-3 left-8 w-3 h-8 bg-[#2a1f12] dark:bg-[#1a1008] rounded-b-sm opacity-60" />
             <div className="absolute -bottom-3 right-8 w-3 h-8 bg-[#2a1f12] dark:bg-[#1a1008] rounded-b-sm opacity-60" />
           </motion.div>
@@ -119,11 +124,7 @@ const BookshelfPage = () => {
         )}
       </div>
 
-      <BookDetailModal
-        book={selectedBook}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+      <BookDetailModal book={selectedBook} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   )
 }

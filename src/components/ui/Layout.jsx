@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Book, LayoutDashboard, BarChart3, Settings, Moon, Sun, Menu, X, Layers, Plus
+  Book, LayoutDashboard, BarChart3, Settings, Moon, Sun,
+  Menu, X, Layers, Plus, List, Users
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -27,11 +28,13 @@ export const Layout = ({ children }) => {
   }
 
   const navItems = [
-    { name: 'Dashboard',   path: '/',            icon: LayoutDashboard },
-    { name: 'Bookshelf',   path: '/bookshelf',   icon: Book },
-    { name: 'Collections', path: '/collections', icon: Layers },
-    { name: 'Statistics',  path: '/stats',        icon: BarChart3 },
-    { name: 'Settings',    path: '/settings',     icon: Settings },
+    { name: 'Dashboard',     path: '/',            icon: LayoutDashboard },
+    { name: 'Bookshelf',     path: '/bookshelf',   icon: Book },
+    { name: 'Authors',       path: '/authors',     icon: Users },
+    { name: 'Collections',   path: '/collections', icon: Layers },
+    { name: 'Reading Lists', path: '/lists',       icon: List },
+    { name: 'Statistics',    path: '/stats',       icon: BarChart3 },
+    { name: 'Settings',      path: '/settings',    icon: Settings },
   ]
 
   return (

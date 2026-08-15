@@ -26,24 +26,26 @@
 
 ## About The Project
 
-**ShelfSpace** is a modern web application that lets you build and manage your personal digital library entirely in the browser. Add books, track what you're reading, rate your favorites, organize collections, and visualize your reading habits — all without an account or a backend.
+**ShelfSpace** is a modern web application that lets you build and manage your personal digital library entirely in the browser. Add books, track what you're reading, rate your favorites, organize collections, manage reading lists, and visualize your reading habits — all without an account or a backend.
 
-Built as a fully static React application, all data is stored locally using LocalStorage, making it fast, private, and perfectly suited for hosting on GitHub Pages.
+Built as an offline-first PWA and static React application, all data is stored locally using LocalStorage, making it fast, private, and perfectly suited for hosting on GitHub Pages.
 
 ### Key Features
 
-- **Interactive Visual Bookshelf:** Your books are displayed as realistic, animated book spines on a wooden shelf. Hover over any book to "pick it up" with a smooth Framer Motion spring animation.
-- **Full Book Management:** Add, edit, and delete books with detailed metadata including title, author, ISBN, genre, pages, publication year, cover image, description, and reading dates.
-- **Reading Progress Tracking:** Track your current page and see a live progress bar for every book you're actively reading.
-- **5-Star Rating System:** Rate every book and see your average rating calculated automatically across your entire library.
-- **Favorites:** Mark books as favorites and surface them instantly across the dashboard.
-- **Custom Collections:** Create, manage, and populate custom collections to group books however you like — by mood, theme, or reading goal.
-- **Powerful Search & Filters:** Search your entire library by title, author, genre, ISBN, or personal notes. Filter by genre, status, and sort by any metadata field.
-- **Reading Statistics:** A dedicated statistics page with interactive Chart.js charts showing genre distribution, monthly reading activity, and more.
-- **Achievement System:** Unlock achievements automatically as you read — First Book, Bookworm, 5,000 Pages, and more.
-- **Dark Mode:** A warm, library-inspired dark theme that persists across sessions.
-- **Import / Export:** Back up your entire library as a JSON file and restore it at any time.
-- **No backend, no accounts, no data ever leaves your browser.**
+- **Interactive Visual Bookshelf:** Your books are displayed as realistic, animated book spines on a wooden shelf with randomized spine heights, widths, and leather-texture overlays. Hover over any book to "pick it up" with a smooth Framer Motion spring animation.
+- **Full In-App Book Editing:** Dedicated edit form accessible directly from any book's detail modal, pre-populated with all current metadata.
+- **Open Library Integration:** Search by title or author inside the Add/Edit form to auto-fill title, author, ISBN, publication year, median page count, and high-resolution cover art with one click.
+- **Reading Streak & Heatmap:** A 52-week calendar contribution heatmap on the Statistics page showing daily reading activity alongside your current and all-time longest streaks.
+- **Favorite Quotes Management:** Save, view, and delete memorable quotes per book inside a dedicated modal tab.
+- **Reading Lists:** Create ordered, goal-oriented reading lists (e.g. "2026 Reading Challenge") separate from collections, complete with per-list progress tracking.
+- **Author Pages:** Dedicated view grouping all books by author with counts, finished totals, average ratings, and full book listings.
+- **Progressive Web App (PWA):** Installable on desktop and mobile with offline caching for all assets and Open Library covers.
+- **Advanced Sorting:** Sort your library by Date Added, Title, Author, Rating, Publication Year, or Pages with a one-click Ascending/Descending toggle.
+- **Custom Collections:** Group books into named collections with visual cover strips.
+- **Statistics & Charts:** Interactive Chart.js charts for genre distribution and monthly reading activity, plus 8 milestone achievements.
+- **Warm Dark Mode:** A library-inspired dark theme persisted via LocalStorage.
+- **Import / Export:** Full JSON backup and restore with schema validation.
+- **100% Private:** No backend, no accounts, no analytics — runs entirely in the browser.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -124,67 +126,75 @@ Follow these steps to run a local copy of ShelfSpace on your machine.
 
 ### 📚 Interactive Bookshelf
 
-Your entire library is displayed as a visual, wooden bookshelf:
+Your entire library rendered as a physical bookshelf:
 
-- Each book renders as a realistic spine with its title, varied heights, widths, and colors
-- Hovering a book lifts it off the shelf with a smooth spring animation
-- Click any book to open a full detail panel with cover art, metadata, notes, and actions
-- Books are automatically arranged into multiple shelf rows as your library grows
+- Realistic spines with vertical titles, varied heights, widths, and palette colors
+- Framer Motion "pick up" spring animation on hover
+- Click any book to open the detail panel
+- Staggered entrance animation on load
+- Multi-row wooden shelf boards that grow with your collection
+- Ascending / Descending sorting toggle
 
-### 🏠 Dashboard
+### 📖 Add & Edit Books + Open Library Auto-Fill
 
-A rich home screen that updates in real time as your library changes:
+- Dedicated Add and Edit forms with full validation
+- Built-in **Open Library API search** — search any title/author to auto-populate title, author, ISBN, pages, year, and cover image in one click
+- Custom cover image URL support with live preview
+- Statuses: Want to Read, Currently Reading, Finished, DNF
 
-- Total books, books read, currently reading, want to read
-- Average rating, pages read, favorites count
-- Circular progress ring for your annual reading goal
-- Continue Reading section with inline progress bars
-- Recently Added and Recently Finished book grids
-- Time-aware greeting and quick link to Statistics
+### 🔥 Reading Streak & 52-Week Heatmap
 
-### 📖 Add & Edit Books
+- Tracks your active daily reading streak and all-time longest streak
+- GitHub-style 52-week contribution heatmap displaying reading frequency
+- Filterable monthly completion charts and genre breakdown pie chart
 
-A polished form supporting all metadata fields:
+### 💬 Favorite Quotes
 
-- Title, Author, ISBN, Genre, Pages, Publication Year
-- Cover image URL, Description, Reading Status
-- Personal Notes with full text support
-- Status options: Want to Read, Currently Reading, Finished, DNF
+- Dedicated Quotes tab on every book's detail modal
+- Add and remove quotes with one click
+- Beautiful parchment-styled quote cards
 
-### 🔎 Search & Filtering
+### 📋 Reading Lists vs 🏷️ Collections
 
-- Instant full-text search across title, author, genre, ISBN, and personal notes
-- Filter by genre and reading status simultaneously
-- Sort by date added, title, author, rating, publication year, or pages
+- **Collections:** Category-based grouping (e.g. "Sci-Fi Favorites", "Finance")
+- **Reading Lists:** Goal-oriented, ordered lists (e.g. "Summer 2026", "Must-Reads Before 30") with visual reading progress bars and book reordering
 
-### 🏷️ Collections
+### ✍️ Author Pages
 
-- Create unlimited named collections
-- Add books to collections directly from the book detail panel
-- Visual cover strip preview inside each collection card
-- Delete collections without affecting the books themselves
+- Automatic grouping of all books in your library by author
+- Author overview cards showing book counts, finished counts, and average star rating
+- Click any author to view their full bibliography in your collection
 
-### 📊 Statistics & Achievements
+### 📱 Progressive Web App (PWA)
 
-- Books read this year and this month
-- Total pages read and average pages per book
-- Genre distribution pie chart
-- Monthly reading activity bar chart
-- 8 unlockable achievements based on real library data (First Book, Bibliophile, Literary Giant, and more)
-- Locked achievements appear muted; unlocked achievements are highlighted
+- Installable on iOS, Android, macOS, and Windows
+- Service worker precaches all application assets for offline access
+- Runtime caching for Open Library covers and external book images
 
 ### 🌙 Dark Mode
 
-- Warm amber-dark palette — not a generic grey dark mode
-- Toggles instantly via the sidebar button
-- Theme preference persists using LocalStorage
+- Warm amber-dark palette (`#16120e` / `#1f1a15`) — not flat grey
+- Toggles instantly from the sidebar; persists via LocalStorage
 
 ### 💾 Data & Privacy
 
-- Everything is stored in `localStorage` — no accounts, no cloud, no tracking
-- Export your full library (books + collections) as a JSON backup file
-- Import a JSON backup to restore your library on any device
-- Imported data is validated before being accepted
+- Full JSON export (books, collections, reading lists)
+- Validated JSON import with overwrite protection
+- Wipe library option with safety confirmation
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- FUTURE IMPROVEMENTS -->
+
+## Future Improvements
+
+Planned features include:
+
+- Barcode / ISBN camera scanner for mobile devices
+- Reading pace estimator (estimated days to finish based on reading speed)
+- CSV export for Goodreads / StoryGraph compatibility
+- Shareable book cards generated as downloadable PNG images
+- Reading timer with ambient soundscapes
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
