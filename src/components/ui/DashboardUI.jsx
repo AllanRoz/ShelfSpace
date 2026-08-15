@@ -30,13 +30,18 @@ export const StatCard = ({ label, value, subValue, icon: Icon, colorClass = 'tex
   </Card>
 )
 
-export const Section = ({ title, children, action }) => (
+export const Section = ({ title, children, action, onAction }) => (
   <div className="mb-10">
     <div className="flex items-center justify-between mb-5">
       <h2 className="text-xl font-bold text-stone-800 dark:text-[#e8ddd3]">{title}</h2>
       {action && (
-        <button className="text-sm font-medium text-accent-warm hover:text-accent-dark transition-colors">
-          {action}
+        <button
+          type="button"
+          onClick={onAction}
+          className="text-sm font-semibold text-accent-warm hover:text-accent-dark transition-colors cursor-pointer flex items-center gap-1"
+        >
+          <span>{action}</span>
+          <span>→</span>
         </button>
       )}
     </div>

@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useLibrary } from '../context/LibraryContext'
-import { Search, BookOpen, Star } from 'lucide-react'
+import { Search, BookOpen, Star, ArrowLeft } from 'lucide-react'
 import { motion } from 'framer-motion'
+import BookDetailModal from '../components/bookshelf/BookDetailModal'
 
 const AuthorCard = ({ author, books, onClick }) => {
   const finished   = books.filter(b => b.status === 'Finished').length
@@ -42,20 +42,24 @@ const AuthorCard = ({ author, books, onClick }) => {
   )
 }
 
-const AuthorPage = ({ author, books, onBack }) => {
-  const navigate = useNavigate()
+const AuthorPage = ({ author, books, onBack, onBookClick }) => {
   const finished = books.filter(b => b.status === 'Finished').length
   const totalPages = books.filter(b => b.status === 'Finished').reduce((a, b) => a + (b.pages || 0), 0)
 
   return (
     <div>
-      <button onClick={onBack} className="mb-6 flex items-center gap-2 text-sm text-stone-500 dark:text-stone-500 hover:text-accent-warm transition-colors">
-        ← All Authors
+      <button
+        type="button"
+        onClick={onBack}
+        className="mb-6 flex items-center gap-2 text-sm font-semibold text-stone-600 dark:text-stone-400 hover:text-accent-warm transition-colors cursor-pointer"
+      >
+        <ArrowLeft size={16} />
+        <span>Back to All Authors</span>
       </button>
 
       <div className="mb-8 p-6 bg-white dark:bg-[#1f1a15] border border-stone-200 dark:border-[#2e2720] rounded-2xl shadow-sm">
         <h2 className="text-3xl font-extrabold text-stone-800 dark:text-[#e8ddd3] mb-1">{author}</h2>
-        <div className="flex flex-wrap gap-4 mt-3 text-sm text-stone-500 dark:text-stone-500">
+        <div className="flex flex-wrap gap-4 mt-3 text-sm text-stone-500 dark:text-stone-400">
           <span>{books.length} books in library</span>
           <span>{finished} finished</span>
           <span>{totalPages.toLocaleString()} pages read</span>
@@ -64,17 +68,22 @@ const AuthorPage = ({ author, books, onBack }) => {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {books.map(book => (
-          <div key={book.id} className="group cursor-pointer" onClick={() => navigate('/bookshelf')}>
-            <div className="aspect-[2/3] rounded-xl overflow-hidden shadow-sm mb-2 bg-stone-200 dark:bg-[#2a221a]">
-              {book.coverImage
-                ? <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                : <div className="w-full h-full flex items-center justify-center"><BookOpen size={24} className="text-stone-400" /></div>
-              }
+          <div
+            key={book.id}
+            className="group cursor-pointer"
+            onClick={() => onBookClick(book)}
+          >
+            <div className="aspect-[2/3] rounded-2xl overflow-hidden shadow-sm mb-2 bg-stone-200 dark:bg-[#2a221a] border border-stone-200/50 dark:border-[#2e2720]/50">
+              {book.coverImage ? (
+                <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center"><BookOpen size={24} className="text-stone-400" /></div>
+              )}
             </div>
-            <h4 className="text-xs font-semibold text-stone-800 dark:text-[#e8ddd3] line-clamp-2 leading-tight">{book.title}</h4>
+            <h4 className="text-xs font-semibold text-stone-800 dark:text-[#e8ddd3] line-clamp-2 leading-tight group-hover:text-accent-warm transition-colors">{book.title}</h4>
             <span className={`text-[10px] font-medium mt-0.5 block ${
-              book.status === 'Finished' ? 'text-emerald-500' :
-              book.status === 'Currently Reading' ? 'text-blue-500' :
+              book.status === 'Finished' ? 'text-emerald-500 font-semibold' :
+              book.status === 'Currently Reading' ? 'text-blue-500 font-semibold' :
               'text-stone-400 dark:text-stone-600'
             }`}>{book.status}</span>
           </div>
@@ -88,6 +97,8 @@ const Authors = () => {
   const { books } = useLibrary()
   const [search,         setSearch]         = useState('')
   const [selectedAuthor, setSelectedAuthor] = useState(null)
+  const [selectedBook,   setSelectedBook]   = useState(null)
+  const [isModalOpen,    setIsModalOpen]    = useState(false)
 
   const authorMap = useMemo(() => {
     const map = {}
@@ -105,6 +116,11 @@ const Authors = () => {
       .sort((a, b) => b[1].length - a[1].length),
   [authorMap, search])
 
+  const handleBookClick = (book) => {
+    setSelectedBook(book)
+    setIsModalOpen(true)
+  }
+
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
       {selectedAuthor ? (
@@ -112,6 +128,7 @@ const Authors = () => {
           author={selectedAuthor}
           books={authorMap[selectedAuthor] || []}
           onBack={() => setSelectedAuthor(null)}
+          onBookClick={handleBookClick}
         />
       ) : (
         <>
@@ -142,6 +159,13 @@ const Authors = () => {
           )}
         </>
       )}
+
+      {/* Detail Modal */}
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }

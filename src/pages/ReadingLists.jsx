@@ -2,12 +2,15 @@ import React, { useState } from 'react'
 import { Plus, Trash2, BookOpen, List, X } from 'lucide-react'
 import { useLibrary } from '../context/LibraryContext'
 import { motion, AnimatePresence } from 'framer-motion'
+import BookDetailModal from '../components/bookshelf/BookDetailModal'
 
 const ReadingLists = () => {
   const { readingLists, addReadingList, removeReadingList, removeBookFromList, books } = useLibrary()
   const [name,        setName]        = useState('')
   const [description, setDescription] = useState('')
   const [expandedId,  setExpandedId]  = useState(null)
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [isModalOpen, setIsModalOpen]   = useState(false)
 
   const handleCreate = (e) => {
     e.preventDefault()
@@ -15,6 +18,11 @@ const ReadingLists = () => {
     addReadingList(name.trim(), description.trim())
     setName('')
     setDescription('')
+  }
+
+  const handleOpenBook = (book) => {
+    setSelectedBook(book)
+    setIsModalOpen(true)
   }
 
   return (
@@ -47,8 +55,11 @@ const ReadingLists = () => {
                   className="w-full px-4 py-2.5 rounded-xl border border-stone-200 dark:border-[#2e2720] bg-stone-50 dark:bg-[#16120e] text-stone-800 dark:text-[#e8ddd3] placeholder-stone-400 dark:placeholder-stone-600 focus:ring-2 focus:ring-accent-warm focus:outline-none text-sm transition-all"
                 />
               </div>
-              <button type="submit"
-                className="w-full py-2.5 bg-accent-warm hover:bg-accent-dark text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-accent-warm/20">
+              <button
+                type="submit"
+                disabled={!name.trim()}
+                className="w-full py-2.5 bg-accent-warm hover:bg-accent-dark disabled:opacity-40 text-white font-bold rounded-xl text-sm transition-all flex items-center justify-center gap-2 shadow-md shadow-accent-warm/20 cursor-pointer"
+              >
                 <Plus size={16} /> Create List
               </button>
             </form>
@@ -96,8 +107,10 @@ const ReadingLists = () => {
                     )}
                   </div>
                   <button
+                    type="button"
                     onClick={(e) => { e.stopPropagation(); removeReadingList(list.id) }}
-                    className="p-1.5 rounded-lg text-stone-300 dark:text-stone-700 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0"
+                    className="p-1.5 rounded-lg text-stone-300 dark:text-stone-700 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors shrink-0 cursor-pointer"
+                    title="Delete reading list"
                   >
                     <Trash2 size={15} />
                   </button>
@@ -115,7 +128,11 @@ const ReadingLists = () => {
                     >
                       <div className="p-4 space-y-2">
                         {listBooks.length > 0 ? listBooks.map((book, i) => (
-                          <div key={book.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-[#27211a] group transition-colors">
+                          <div
+                            key={book.id}
+                            onClick={() => handleOpenBook(book)}
+                            className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-stone-50 dark:hover:bg-[#27211a] group transition-colors cursor-pointer"
+                          >
                             <span className="text-xs font-bold text-stone-300 dark:text-stone-700 w-5 shrink-0">{i + 1}</span>
                             <div className="w-8 h-10 rounded overflow-hidden bg-stone-200 dark:bg-[#2a221a] shrink-0 shadow-sm">
                               {book.coverImage
@@ -124,7 +141,7 @@ const ReadingLists = () => {
                               }
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-stone-800 dark:text-[#e8ddd3] truncate">{book.title}</p>
+                              <p className="text-sm font-semibold text-stone-800 dark:text-[#e8ddd3] group-hover:text-accent-warm transition-colors truncate">{book.title}</p>
                               <p className="text-xs text-stone-400 dark:text-stone-600 truncate">{book.author}</p>
                             </div>
                             <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
@@ -135,8 +152,13 @@ const ReadingLists = () => {
                               {book.status === 'Currently Reading' ? 'Reading' : book.status}
                             </span>
                             <button
-                              onClick={() => removeBookFromList(list.id, book.id)}
-                              className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 dark:text-stone-700 hover:text-rose-500 transition-all shrink-0"
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeBookFromList(list.id, book.id)
+                              }}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-stone-300 dark:text-stone-700 hover:text-rose-500 transition-all shrink-0 cursor-pointer"
+                              title="Remove from list"
                             >
                               <X size={13} />
                             </button>
@@ -165,6 +187,12 @@ const ReadingLists = () => {
           )}
         </div>
       </div>
+
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }

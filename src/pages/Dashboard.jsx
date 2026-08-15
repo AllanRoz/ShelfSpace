@@ -1,13 +1,22 @@
-import React from 'react'
-import { BookOpen, CheckCircle, Clock, Star, Bookmark, Book as BookIcon, TrendingUp } from 'lucide-react'
+import React, { useState } from 'react'
+import { BookOpen, CheckCircle, Clock, Star, Bookmark, Book as BookIcon, TrendingUp, ChevronRight } from 'lucide-react'
 import { StatCard, Section, Card } from '../components/ui/DashboardUI'
 import { useLibrary } from '../context/LibraryContext'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import BookDetailModal from '../components/bookshelf/BookDetailModal'
 
 const Dashboard = () => {
   const { books } = useLibrary()
   const navigate = useNavigate()
+
+  const [selectedBook, setSelectedBook] = useState(null)
+  const [isModalOpen, setIsModalOpen]   = useState(false)
+
+  const handleOpenBook = (book) => {
+    setSelectedBook(book)
+    setIsModalOpen(true)
+  }
 
   const stats = {
     totalBooks:        books.length,
@@ -26,8 +35,8 @@ const Dashboard = () => {
     }).length,
   }
 
-  const continueReading = books.filter(b => b.status === 'Currently Reading')
-  const recentlyAdded   = [...books].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0, 4)
+  const continueReading  = books.filter(b => b.status === 'Currently Reading')
+  const recentlyAdded    = [...books].sort((a, b) => new Date(b.dateAdded) - new Date(a.dateAdded)).slice(0, 4)
   const recentlyFinished = [...books]
     .filter(b => b.status === 'Finished')
     .sort((a, b) => new Date(b.dateFinished || b.dateAdded) - new Date(a.dateFinished || a.dateAdded))
@@ -73,29 +82,37 @@ const Dashboard = () => {
         <div className="lg:col-span-2 space-y-10">
 
           {/* Continue Reading */}
-          <Section title="Continue Reading" action="Go to Shelf">
+          <Section
+            title="Continue Reading"
+            action="Go to Shelf"
+            onAction={() => navigate('/bookshelf')}
+          >
             {continueReading.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {continueReading.map(book => {
-                  const pct = book.pages > 0 ? Math.min(100, Math.round((book.currentPage / book.pages) * 100)) : 0
+                  const pct = book.pages > 0 ? Math.min(100, Math.round(((book.currentPage || 0) / book.pages) * 100)) : 0
                   return (
                     <div
                       key={book.id}
-                      onClick={() => navigate('/bookshelf')}
+                      onClick={() => handleOpenBook(book)}
                       className="flex gap-4 p-4 bg-white dark:bg-[#1f1a15] border border-stone-200 dark:border-[#2e2720] rounded-2xl shadow-sm hover:shadow-md dark:hover:shadow-black/30 cursor-pointer group transition-all"
                     >
-                      <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 shadow">
-                        <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      <div className="w-14 h-20 rounded-lg overflow-hidden shrink-0 shadow bg-stone-200 dark:bg-[#2a221a]">
+                        {book.coverImage ? (
+                          <img src={book.coverImage} alt={book.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-stone-400"><BookOpen size={20} /></div>
+                        )}
                       </div>
                       <div className="flex flex-col justify-between flex-1 min-w-0">
                         <div>
-                          <h3 className="font-bold text-sm text-stone-800 dark:text-[#e8ddd3] line-clamp-1">{book.title}</h3>
+                          <h3 className="font-bold text-sm text-stone-800 dark:text-[#e8ddd3] line-clamp-1 group-hover:text-accent-warm transition-colors">{book.title}</h3>
                           <p className="text-xs text-stone-500 dark:text-stone-500 mt-0.5">{book.author}</p>
                         </div>
                         <div>
                           <div className="flex justify-between text-[10px] text-stone-400 dark:text-stone-600 mb-1">
                             <span>{pct}% complete</span>
-                            <span>{book.currentPage} / {book.pages} pg</span>
+                            <span>{book.currentPage || 0} / {book.pages || '?'} pg</span>
                           </div>
                           <div className="w-full h-1.5 bg-stone-100 dark:bg-[#2a221a] rounded-full overflow-hidden">
                             <div className="h-full bg-accent-warm rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -107,25 +124,37 @@ const Dashboard = () => {
                 })}
               </div>
             ) : (
-              <EmptyState message="No books in progress. Start reading something!" />
+              <EmptyState message="No books in progress. Start reading something from your shelf!" />
             )}
           </Section>
 
           {/* Recently Added */}
-          <Section title="Recently Added" action="View Shelf">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {recentlyAdded.map(book => (
-                <BookThumb key={book.id} book={book} />
-              ))}
-            </div>
+          <Section
+            title="Recently Added"
+            action="View Shelf"
+            onAction={() => navigate('/bookshelf')}
+          >
+            {recentlyAdded.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                {recentlyAdded.map(book => (
+                  <BookThumb key={book.id} book={book} onClick={() => handleOpenBook(book)} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="No books added yet. Click '+ Add Book' to get started!" />
+            )}
           </Section>
 
           {/* Recently Finished */}
           {recentlyFinished.length > 0 && (
-            <Section title="Recently Finished">
+            <Section
+              title="Recently Finished"
+              action="View All"
+              onAction={() => navigate('/bookshelf')}
+            >
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {recentlyFinished.map(book => (
-                  <BookThumb key={book.id} book={book} badge="✓" />
+                  <BookThumb key={book.id} book={book} badge="✓" onClick={() => handleOpenBook(book)} />
                 ))}
               </div>
             </Section>
@@ -179,18 +208,28 @@ const Dashboard = () => {
           {/* Progress hint */}
           <div
             onClick={() => navigate('/stats')}
-            className="cursor-pointer flex items-center gap-3 p-4 bg-accent-warm/8 dark:bg-accent-warm/5 border border-accent-warm/20 dark:border-accent-warm/15 rounded-2xl hover:bg-accent-warm/12 dark:hover:bg-accent-warm/8 transition-all group"
+            className="cursor-pointer flex items-center justify-between p-4 bg-accent-warm/8 dark:bg-accent-warm/5 border border-accent-warm/20 dark:border-accent-warm/15 rounded-2xl hover:bg-accent-warm/12 dark:hover:bg-accent-warm/8 transition-all group"
           >
-            <div className="p-2 bg-accent-warm/15 rounded-xl text-accent-warm">
-              <TrendingUp size={18} />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-accent-warm/15 rounded-xl text-accent-warm">
+                <TrendingUp size={18} />
+              </div>
+              <div>
+                <p className="font-semibold text-sm text-stone-800 dark:text-[#e8ddd3]">View Statistics</p>
+                <p className="text-xs text-stone-400 dark:text-stone-600">Charts, achievements & streaks</p>
+              </div>
             </div>
-            <div>
-              <p className="font-semibold text-sm text-stone-800 dark:text-[#e8ddd3]">View Statistics</p>
-              <p className="text-xs text-stone-400 dark:text-stone-600">Charts, achievements & more</p>
-            </div>
+            <ChevronRight size={18} className="text-stone-400 group-hover:text-accent-warm group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
       </div>
+
+      {/* Book Detail Modal on Dashboard */}
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }
@@ -203,27 +242,33 @@ const getGreeting = () => {
   return 'Good evening'
 }
 
-const BookThumb = ({ book, badge }) => (
-  <div className="group cursor-pointer">
-    <div className="aspect-[2/3] overflow-hidden rounded-xl shadow-sm mb-2 relative bg-stone-200 dark:bg-[#2a221a]">
-      <img
-        src={book.coverImage}
-        alt={book.title}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
+const BookThumb = ({ book, badge, onClick }) => (
+  <div onClick={onClick} className="group cursor-pointer">
+    <div className="aspect-[2/3] overflow-hidden rounded-2xl shadow-sm mb-2 relative bg-stone-200 dark:bg-[#2a221a] border border-stone-200/50 dark:border-[#2e2720]/50">
+      {book.coverImage ? (
+        <img
+          src={book.coverImage}
+          alt={book.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-stone-400">
+          <BookOpen size={24} />
+        </div>
+      )}
       {badge && (
-        <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold shadow">
+        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shadow-md">
           {badge}
         </div>
       )}
     </div>
-    <h3 className="font-semibold text-xs text-stone-800 dark:text-[#e8ddd3] line-clamp-1">{book.title}</h3>
+    <h3 className="font-semibold text-xs text-stone-800 dark:text-[#e8ddd3] line-clamp-1 group-hover:text-accent-warm transition-colors">{book.title}</h3>
     <p className="text-[10px] text-stone-400 dark:text-stone-600 truncate">{book.author}</p>
   </div>
 )
 
 const EmptyState = ({ message }) => (
-  <div className="text-center py-10 rounded-xl bg-stone-50 dark:bg-[#16120e] border border-dashed border-stone-200 dark:border-[#2e2720]">
+  <div className="text-center py-10 rounded-2xl bg-stone-50/50 dark:bg-[#16120e]/50 border border-dashed border-stone-200 dark:border-[#2e2720]">
     <p className="text-sm text-stone-400 dark:text-stone-600">{message}</p>
   </div>
 )
