@@ -20,16 +20,17 @@ const BookSpine = ({ book, onClick }) => {
     <motion.div
       onClick={() => onClick(book)}
       whileHover={{ 
-        y: -12, 
+        y: -15, 
         scale: 1.05, 
         zIndex: 10,
-        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.3)' 
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' 
       }}
-      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       className={`
         relative cursor-pointer flex flex-col justify-center items-center 
-        ${style.color} border-l border-white/20 border-r border-black/20 
+        ${style.color} border-l border-white/30 border-r border-black/40 
         rounded-sm shadow-md overflow-hidden transition-colors
+        bg-gradient-to-r from-black/20 via-transparent to-black/20
       `}
       style={{ 
         height: style.height, 
@@ -38,13 +39,16 @@ const BookSpine = ({ book, onClick }) => {
       }}
     >
       {/* Book Title - Vertical Text */}
-      <span className="whitespace-nowrap rotate-90 text-[10px] font-bold text-stone-100 uppercase tracking-widest opacity-80 pointer-events-none">
+      <span className="whitespace-nowrap rotate-90 text-[10px] font-bold text-stone-100 uppercase tracking-widest opacity-90 pointer-events-none drop-shadow-sm">
         {book.title}
       </span>
 
-      {/* Decorative Gold Bands */}
-      <div className="absolute top-4 left-0 right-0 h-0.5 bg-yellow-600/40" />
-      <div className="absolute bottom-4 left-0 right-0 h-0.5 bg-yellow-600/40" />
+      {/* Decorative Gold Bands - Premium Polish */}
+      <div className="absolute top-4 left-0 right-0 h-1 bg-gradient-to-r from-yellow-700 via-yellow-400 to-yellow-700 opacity-60" />
+      <div className="absolute bottom-4 left-0 right-0 h-1 bg-gradient-to-r from-yellow-700 via-yellow-400 to-yellow-700 opacity-60" />
+      
+      {/* Subtle Leather Texture Overlay */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/leather.png')]" />
     </motion.div>
   )
 }
