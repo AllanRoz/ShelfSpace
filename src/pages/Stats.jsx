@@ -3,7 +3,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import { Bar, Pie } from 'react-chartjs-2'
 import { useLibrary } from '../context/LibraryContext'
 import { StatCard, Section, Card } from '../components/ui/DashboardUI'
-import { Trophy, BookOpen, Calendar, Hash } from 'lucide-react'
+import { Trophy, BookOpen, Calendar, Hash, Clock } from 'lucide-react'
 import { ACHIEVEMENT_DEFINITIONS } from '../data/achievements'
 import { motion } from 'framer-motion'
 

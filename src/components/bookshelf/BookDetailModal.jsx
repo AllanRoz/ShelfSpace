@@ -1,12 +1,24 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star, BookOpen, Calendar, Bookmark, Quote, Trash2, Edit3, CheckCircle } from 'lucide-react'
+import { X, Star, BookOpen, Calendar, Bookmark, Quote, Trash2, Edit3, CheckCircle, Clock, Heart } from 'lucide-react'
 import { useLibrary } from '../../context/LibraryContext'
 
 const BookDetailModal = ({ book, isOpen, onClose }) => {
-  const { updateBook, deleteBook } = useLibrary()
+  const { updateBook, deleteBook, collections, addBookToCollection } = useLibrary()
+  const [activeCollection, setActiveCollection] = useState('')
   
   if (!book) return null
+
+  const handleToggleFavorite = () => {
+    updateBook(book.id, { isFavorite: !book.isFavorite })
+  }
+
+  const handleDelete = () => {
+    if (window.confirm(`Are you sure you want to delete "${book.title}"?`)) {
+      deleteBook(book.id)
+      onClose()
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -50,20 +62,29 @@ const BookDetailModal = ({ book, isOpen, onClose }) => {
             {/* Right: Details */}
             <div className="flex-1 p-8 overflow-y-auto">
               <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100">{book.title}</h2>
-                  <p className="text-lg text-stone-500 dark:text-stone-400">{book.author}</p>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100">{book.title}</h2>
+                    <p className="text-lg text-stone-500 dark:text-stone-400">{book.author}</p>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <button 
-                    onClick={() => {}}
+                    onClick={handleToggleFavorite}
+                    className={`p-2 rounded-full transition-colors ${book.isFavorite ? 'text-rose-500 bg-rose-50 dark:bg-rose-900/20' : 'text-stone-400 hover:text-rose-500'}`}
+                    title="Favorite Book"
+                  >
+                    <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} />
+                  </button>
+                  <button 
+                    onClick={handleDelete}
                     className="p-2 text-stone-400 hover:text-rose-500 transition-colors"
                     title="Delete Book"
                   >
                     <Trash2 size={20} />
                   </button>
                   <button 
-                    onClick={() => {}}
+                    onClick={() => window.alert('Edit mode coming in next phase!')}
                     className="p-2 text-stone-400 hover:text-accent-warm transition-colors"
                     title="Edit Book"
                   >
@@ -118,21 +139,49 @@ const BookDetailModal = ({ book, isOpen, onClose }) => {
                 </div>
               </div>
 
-              <div className="flex gap-3">
-                <button 
-                  onClick={() => updateBook(book.id, { status: 'Currently Reading' })}
-                  className="flex-1 py-3 px-4 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
-                >
-                  <Clock size={18} />
-                  Reading
-                </button>
-                <button 
-                  onClick={() => updateBook(book.id, { status: 'Finished' })}
-                  className="flex-1 py-3 px-4 bg-accent-warm hover:bg-accent-dark text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-accent-warm/20"
-                >
-                  <CheckCircle size={18} />
-                  Finished
-                </button>
+              <div className="space-y-6">
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => updateBook(book.id, { status: 'Currently Reading' })}
+                    className="flex-1 py-3 px-4 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                  >
+                    <Clock size={18} />
+                    Reading
+                  </button>
+                  <button 
+                    onClick={() => updateBook(book.id, { status: 'Finished' })}
+                    className="flex-1 py-3 px-4 bg-accent-warm hover:bg-accent-dark text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-accent-warm/20"
+                  >
+                    <CheckCircle size={18} />
+                    Finished
+                  </button>
+                </div>
+
+                <div className="p-4 bg-stone-50 dark:bg-stone-900/50 rounded-2xl border border-stone-200 dark:border-stone-700">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">Add to Collection</label>
+                  <div className="flex gap-2">
+                    <select 
+                      value={activeCollection}
+                      onChange={(e) => setActiveCollection(e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-accent-warm focus:outline-none"
+                    >
+                      <option value="">Select a collection...</option>
+                      {collections.map(col => (
+                        <option key={col.id} value={col.id}>{col.name}</option>
+                      ))}
+                    </select>
+                    <button 
+                      onClick={() => {
+                        if (!activeCollection) return
+                        addBookToCollection(activeCollection, book.id)
+                        setActiveCollection('')
+                      }}
+                      className="px-4 py-2 bg-stone-800 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg text-sm font-bold hover:bg-stone-700 dark:hover:bg-stone-200 transition-all"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>

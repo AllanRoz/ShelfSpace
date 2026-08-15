@@ -17,14 +17,14 @@ export const Layout = ({ children }) => {
   }, [])
 
   const toggleTheme = () => {
+    const newTheme = !isDarkMode ? 'dark' : 'light'
     setIsDarkMode(!isDarkMode)
-    if (!isDarkMode) {
+    if (newTheme === 'dark') {
       document.documentElement.classList.add('dark')
-      localStorage.setItem('theme', 'dark')
     } else {
       document.documentElement.classList.remove('dark')
-      localStorage.setItem('theme', 'light')
     }
+    localStorage.setItem('theme', newTheme)
   }
 
   const navItems = [
