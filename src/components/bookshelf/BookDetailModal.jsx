@@ -1,188 +1,209 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star, BookOpen, Calendar, Bookmark, Quote, Trash2, Edit3, CheckCircle, Clock, Heart } from 'lucide-react'
+import {
+  X, Star, BookOpen, Calendar, Bookmark, Trash2, Edit3,
+  CheckCircle, Clock, Heart
+} from 'lucide-react'
 import { useLibrary } from '../../context/LibraryContext'
 
 const BookDetailModal = ({ book, isOpen, onClose }) => {
   const { updateBook, deleteBook, collections, addBookToCollection } = useLibrary()
-  const [activeCollection, setActiveCollection] = useState('')
-  
+  const [activeCollection, setActiveCollection] = React.useState('')
+
   if (!book) return null
 
-  const handleToggleFavorite = () => {
-    updateBook(book.id, { isFavorite: !book.isFavorite })
-  }
+  const handleToggleFavorite = () => updateBook(book.id, { isFavorite: !book.isFavorite })
 
   const handleDelete = () => {
-    if (window.confirm(`Are you sure you want to delete "${book.title}"?`)) {
+    if (window.confirm(`Delete "${book.title}"?`)) {
       deleteBook(book.id)
       onClose()
     }
   }
+
+  const progress = book.pages > 0 ? Math.min(100, Math.round((book.currentPage / book.pages) * 100)) : 0
+
+  const statusBadge = {
+    'Finished':          'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    'Currently Reading': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    'DNF':               'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+  }[book.status] || 'bg-stone-100 text-stone-600 dark:bg-[#2a221a] dark:text-stone-400'
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-stone-950/70 dark:bg-black/80 backdrop-blur-sm"
           />
 
-          {/* Modal Content */}
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.93, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-stone-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row"
+            exit={{ opacity: 0, scale: 0.93, y: 24 }}
+            transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+            className="
+              relative w-full max-w-4xl max-h-[90vh]
+              bg-white dark:bg-[#1f1a15]
+              border border-stone-200 dark:border-[#2e2720]
+              rounded-3xl shadow-2xl dark:shadow-black/60
+              overflow-hidden flex flex-col md:flex-row
+            "
           >
-            <button 
+            {/* Close */}
+            <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 p-2 bg-white/80 dark:bg-stone-700/80 rounded-full text-stone-500 hover:text-stone-800 dark:hover:text-stone-100 transition-colors"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-stone-100/80 dark:bg-[#2a221a]/80 text-stone-500 dark:text-stone-400 hover:text-stone-900 dark:hover:text-[#e8ddd3] transition-colors backdrop-blur-sm"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
 
-            {/* Left: Cover Art */}
-            <div className="w-full md:w-1/3 bg-stone-100 dark:bg-stone-900 p-8 flex items-center justify-center">
-              <div className="relative w-full aspect-[2/3] shadow-2xl rounded-lg overflow-hidden group">
-                <img 
-                  src={book.coverImage} 
-                  alt={book.title} 
+            {/* ── Left: Cover ── */}
+            <div className="w-full md:w-80 shrink-0 bg-stone-100 dark:bg-[#16120e] flex items-center justify-center p-8">
+              <div className="w-full aspect-[2/3] rounded-xl overflow-hidden shadow-2xl dark:shadow-black/60 relative">
+                <img
+                  src={book.coverImage}
+                  alt={book.title}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                {/* Progress overlay at bottom */}
+                {book.status === 'Currently Reading' && book.pages > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                    <div className="flex justify-between text-xs text-white/80 mb-1.5">
+                      <span>Progress</span>
+                      <span>{book.currentPage} / {book.pages} pages</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-accent-warm rounded-full"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <p className="text-white/60 text-[10px] mt-1 text-right">{progress}%</p>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Right: Details */}
-            <div className="flex-1 p-8 overflow-y-auto">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <h2 className="text-3xl font-bold text-stone-800 dark:text-stone-100">{book.title}</h2>
-                    <p className="text-lg text-stone-500 dark:text-stone-400">{book.author}</p>
-                  </div>
+            {/* ── Right: Details ── */}
+            <div className="flex-1 p-7 overflow-y-auto">
+              {/* Header row */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1 pr-4">
+                  <h2 className="text-2xl font-extrabold text-stone-900 dark:text-[#e8ddd3] leading-tight">{book.title}</h2>
+                  <p className="text-base text-stone-500 dark:text-stone-400 mt-1">{book.author}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button 
+                <div className="flex gap-1.5 shrink-0">
+                  <button
                     onClick={handleToggleFavorite}
-                    className={`p-2 rounded-full transition-colors ${book.isFavorite ? 'text-rose-500 bg-rose-50 dark:bg-rose-900/20' : 'text-stone-400 hover:text-rose-500'}`}
-                    title="Favorite Book"
+                    className={`p-2 rounded-xl transition-all ${book.isFavorite ? 'text-rose-500 bg-rose-50 dark:bg-rose-900/20' : 'text-stone-300 dark:text-stone-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20'}`}
+                    title="Toggle Favorite"
                   >
-                    <Heart size={20} fill={book.isFavorite ? 'currentColor' : 'none'} />
+                    <Heart size={18} fill={book.isFavorite ? 'currentColor' : 'none'} />
                   </button>
-                  <button 
+                  <button
                     onClick={handleDelete}
-                    className="p-2 text-stone-400 hover:text-rose-500 transition-colors"
+                    className="p-2 rounded-xl text-stone-300 dark:text-stone-600 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-all"
                     title="Delete Book"
                   >
-                    <Trash2 size={20} />
-                  </button>
-                  <button 
-                    onClick={() => window.alert('Edit mode coming in next phase!')}
-                    className="p-2 text-stone-400 hover:text-accent-warm transition-colors"
-                    title="Edit Book"
-                  >
-                    <Edit3 size={20} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-3 mb-6">
-                <span className="px-3 py-1 bg-stone-100 dark:bg-stone-700 text-stone-600 dark:text-stone-300 rounded-full text-xs font-medium">
+              {/* Badges */}
+              <div className="flex flex-wrap gap-2 mb-5">
+                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-stone-100 dark:bg-[#2a221a] text-stone-600 dark:text-stone-400">
                   {book.genre}
                 </span>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  book.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 
-                  book.status === 'Currently Reading' ? 'bg-blue-100 text-blue-700' : 
-                  'bg-stone-100 text-stone-600'
-                }`}>
+                <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusBadge}`}>
                   {book.status}
                 </span>
-                <div className="flex items-center gap-1 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-medium">
-                  <Star size={12} fill="currentColor" />
-                  {book.rating || 'No rating'}
-                </div>
+                {book.rating > 0 && (
+                  <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+                    {'★'.repeat(book.rating)}{'☆'.repeat(5 - book.rating)}
+                  </span>
+                )}
               </div>
 
-              <p className="text-stone-600 dark:text-stone-400 leading-relaxed mb-8">
+              {/* Description */}
+              <p className="text-sm text-stone-600 dark:text-stone-400 leading-relaxed mb-6">
                 {book.description || 'No description provided.'}
               </p>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-sm text-stone-500 dark:text-stone-400">
-                    <BookOpen size={16} />
-                    <span>{book.pages} pages</span>
+              {/* Meta grid */}
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                {[
+                  { icon: BookOpen, text: `${book.pages} pages` },
+                  { icon: Calendar, text: `Published ${book.publicationYear}` },
+                  { icon: Bookmark, text: `Added ${new Date(book.dateAdded).toLocaleDateString()}` },
+                  ...(book.dateFinished ? [{ icon: CheckCircle, text: `Finished ${new Date(book.dateFinished).toLocaleDateString()}` }] : []),
+                ].map(({ icon: Icon, text }, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-stone-500 dark:text-stone-500">
+                    <Icon size={14} className="shrink-0 text-stone-400 dark:text-stone-600" />
+                    <span>{text}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm text-stone-500 dark:text-stone-400">
-                    <Calendar size={16} />
-                    <span>Published {book.publicationYear}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-stone-500 dark:text-stone-400">
-                    <Bookmark size={16} />
-                    <span>Added {new Date(book.dateAdded).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="p-4 bg-stone-50 dark:bg-stone-900/50 rounded-2xl border border-stone-100 dark:border-stone-700">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">Personal Notes</h4>
-                    <p className="text-sm text-stone-600 dark:text-stone-300 italic">
-                      "{book.personalNotes || 'No notes yet...'}"
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
 
-              <div className="space-y-6">
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => updateBook(book.id, { status: 'Currently Reading' })}
-                    className="flex-1 py-3 px-4 bg-stone-100 dark:bg-stone-700 hover:bg-stone-200 dark:hover:bg-stone-600 text-stone-800 dark:text-stone-100 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
-                  >
-                    <Clock size={18} />
-                    Reading
-                  </button>
-                  <button 
-                    onClick={() => updateBook(book.id, { status: 'Finished' })}
-                    className="flex-1 py-3 px-4 bg-accent-warm hover:bg-accent-dark text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2 shadow-lg shadow-accent-warm/20"
-                  >
-                    <CheckCircle size={18} />
-                    Finished
-                  </button>
+              {/* Notes */}
+              {book.personalNotes && (
+                <div className="p-4 rounded-xl bg-stone-50 dark:bg-[#16120e] border border-stone-200 dark:border-[#2e2720] mb-6">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600 mb-2">Personal Notes</p>
+                  <p className="text-sm text-stone-600 dark:text-stone-400 italic leading-relaxed">"{book.personalNotes}"</p>
                 </div>
+              )}
 
-                <div className="p-4 bg-stone-50 dark:bg-stone-900/50 rounded-2xl border border-stone-200 dark:border-stone-700">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-stone-400 mb-2">Add to Collection</label>
+              {/* Actions */}
+              <div className="flex gap-3 mb-5">
+                <button
+                  onClick={() => updateBook(book.id, { status: 'Currently Reading' })}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold bg-stone-100 dark:bg-[#2a221a] text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-[#352b20] transition-all flex items-center justify-center gap-2"
+                >
+                  <Clock size={16} /> Reading
+                </button>
+                <button
+                  onClick={() => updateBook(book.id, { status: 'Finished' })}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold bg-accent-warm hover:bg-accent-dark text-white transition-all flex items-center justify-center gap-2 shadow-md shadow-accent-warm/20"
+                >
+                  <CheckCircle size={16} /> Finished
+                </button>
+              </div>
+
+              {/* Add to Collection */}
+              {collections.length > 0 && (
+                <div className="p-4 rounded-xl bg-stone-50 dark:bg-[#16120e] border border-stone-200 dark:border-[#2e2720]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-stone-400 dark:text-stone-600 mb-2">Add to Collection</p>
                   <div className="flex gap-2">
-                    <select 
+                    <select
                       value={activeCollection}
                       onChange={(e) => setActiveCollection(e.target.value)}
-                      className="flex-1 px-3 py-2 rounded-lg border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-800 text-sm text-stone-800 dark:text-stone-100 focus:ring-2 focus:ring-accent-warm focus:outline-none"
+                      className="flex-1 px-3 py-2 rounded-lg border border-stone-200 dark:border-[#2e2720] bg-white dark:bg-[#1f1a15] text-sm text-stone-800 dark:text-stone-300 focus:ring-2 focus:ring-accent-warm focus:outline-none"
                     >
-                      <option value="">Select a collection...</option>
+                      <option value="">Select a collection…</option>
                       {collections.map(col => (
                         <option key={col.id} value={col.id}>{col.name}</option>
                       ))}
                     </select>
-                    <button 
+                    <button
                       onClick={() => {
                         if (!activeCollection) return
                         addBookToCollection(activeCollection, book.id)
                         setActiveCollection('')
                       }}
-                      className="px-4 py-2 bg-stone-800 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg text-sm font-bold hover:bg-stone-700 dark:hover:bg-stone-200 transition-all"
+                      className="px-4 py-2 bg-stone-800 dark:bg-accent-warm text-white rounded-lg text-sm font-bold hover:bg-stone-700 dark:hover:bg-accent-dark transition-all"
                     >
                       Add
                     </button>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         </div>

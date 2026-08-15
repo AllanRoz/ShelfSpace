@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Book, LayoutDashboard, BarChart3, Settings, Moon, Sun, Menu, X, Layers } from 'lucide-react'
+import {
+  Book, LayoutDashboard, BarChart3, Settings, Moon, Sun, Menu, X, Layers, Plus
+} from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export const Layout = ({ children }) => {
@@ -9,99 +11,144 @@ export const Layout = ({ children }) => {
   const location = useLocation()
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    const saved = localStorage.getItem('theme')
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (saved === 'dark' || (!saved && prefersDark)) {
       setIsDarkMode(true)
       document.documentElement.classList.add('dark')
     }
   }, [])
 
   const toggleTheme = () => {
-    const newTheme = !isDarkMode ? 'dark' : 'light'
-    setIsDarkMode(!isDarkMode)
-    if (newTheme === 'dark') {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-    }
-    localStorage.setItem('theme', newTheme)
+    const next = !isDarkMode
+    setIsDarkMode(next)
+    document.documentElement.classList.toggle('dark', next)
+    localStorage.setItem('theme', next ? 'dark' : 'light')
   }
 
   const navItems = [
-    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-    { name: 'Bookshelf', path: '/bookshelf', icon: Book },
+    { name: 'Dashboard',   path: '/',            icon: LayoutDashboard },
+    { name: 'Bookshelf',   path: '/bookshelf',   icon: Book },
     { name: 'Collections', path: '/collections', icon: Layers },
-    { name: 'Statistics', path: '/stats', icon: BarChart3 },
-    { name: 'Settings', path: '/settings', icon: Settings },
+    { name: 'Statistics',  path: '/stats',        icon: BarChart3 },
+    { name: 'Settings',    path: '/settings',     icon: Settings },
   ]
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
-      {/* Navigation Sidebar */}
+
+      {/* ── Sidebar ── */}
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-stone-100 dark:bg-stone-800 border-r border-stone-200 dark:border-stone-700 
+        fixed inset-y-0 left-0 z-50 w-64 flex flex-col
+        bg-stone-100 dark:bg-[#1a1510]
+        border-r border-stone-200 dark:border-[#2a2218]
+        shadow-xl dark:shadow-black/40
         transform transition-transform duration-300 ease-in-out
-        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} 
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         md:relative md:translate-x-0
       `}>
-        <div className="p-6 flex flex-col h-full">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-accent-warm rounded-lg flex items-center justify-center shadow-sm">
-              <Book className="text-white" size={24} />
+        {/* Logo */}
+        <div className="px-6 pt-6 pb-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-warm to-accent-dark flex items-center justify-center shadow-lg shadow-accent-warm/30">
+            <Book className="text-white" size={20} />
+          </div>
+          <div>
+            <h1 className="text-lg font-extrabold text-stone-800 dark:text-[#e8ddd3] tracking-tight leading-none">ShelfSpace</h1>
+            <p className="text-[10px] text-stone-400 dark:text-stone-500 font-medium tracking-widest uppercase mt-0.5">Your Library</p>
+          </div>
+        </div>
+
+        {/* Add Book CTA */}
+        <div className="px-4 pb-4">
+          <Link
+            to="/add"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-accent-warm hover:bg-accent-dark text-white text-sm font-bold transition-all shadow-md shadow-accent-warm/20 active:scale-95"
+          >
+            <Plus size={16} />
+            Add Book
+          </Link>
+        </div>
+
+        {/* Nav divider label */}
+        <p className="px-6 pb-2 text-[10px] uppercase tracking-widest font-bold text-stone-400 dark:text-stone-600">Navigation</p>
+
+        {/* Nav Items */}
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+          {navItems.map(({ name, path, icon: Icon }) => {
+            const isActive = location.pathname === path
+            return (
+              <Link
+                key={path}
+                to={path}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`
+                  relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium
+                  transition-all duration-200 group
+                  ${isActive
+                    ? 'bg-accent-warm/15 dark:bg-accent-warm/10 text-accent-warm dark:text-accent-warm border border-accent-warm/20 dark:border-accent-warm/15'
+                    : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200/70 dark:hover:bg-[#251e16] hover:text-stone-900 dark:hover:text-[#e8ddd3]'}
+                `}
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="activeNavPill"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-accent-warm rounded-full"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <Icon size={18} />
+                <span>{name}</span>
+              </Link>
+            )
+          })}
+        </nav>
+
+        {/* Theme toggle */}
+        <div className="px-3 pb-6 pt-4 border-t border-stone-200 dark:border-[#2a2218] mt-4">
+          <button
+            onClick={toggleTheme}
+            className="
+              flex items-center gap-3 w-full px-4 py-2.5 rounded-xl text-sm font-medium
+              text-stone-600 dark:text-stone-400
+              hover:bg-stone-200/70 dark:hover:bg-[#251e16]
+              hover:text-stone-900 dark:hover:text-[#e8ddd3]
+              transition-all duration-200
+            "
+          >
+            <div className={`p-1 rounded-lg transition-colors ${isDarkMode ? 'bg-amber-500/15 text-amber-400' : 'bg-stone-200 text-stone-600'}`}>
+              {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
             </div>
-            <h1 className="text-xl font-bold text-stone-800 dark:text-stone-100 tracking-tight">ShelfSpace</h1>
-          </div>
-
-          <nav className="flex-1 space-y-1">
-            {navItems.map(({ name, path, icon: Icon }) => {
-              const isActive = location.pathname === path
-              return (
-                <Link
-                  key={path}
-                  to={path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`
-                    flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200
-                    ${isActive 
-                      ? 'bg-accent-warm text-white shadow-md' 
-                      : 'text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 hover:text-stone-900 dark:hover:text-stone-100'}
-                  `}
-                >
-                  <Icon size={20} />
-                  <span className="font-medium">{name}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
-          <div className="mt-auto pt-6 border-t border-stone-200 dark:border-stone-700">
-            <button
-              onClick={toggleTheme}
-              className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700 transition-all duration-200"
-            >
-              {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              <span className="font-medium">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-            </button>
-          </div>
+            {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+          </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 relative">
+      {/* ── Main ── */}
+      <main className="flex-1 flex flex-col min-w-0 relative bg-stone-50 dark:bg-[#16120e]">
+
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-stone-900 border-b border-stone-200 dark:border-stone-700 sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-accent-warm rounded flex items-center justify-center">
-              <Book className="text-white" size={18} />
+        <header className="md:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-[#1a1510] border-b border-stone-200 dark:border-[#2a2218] sticky top-0 z-40 shadow-sm dark:shadow-black/30">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-warm to-accent-dark flex items-center justify-center">
+              <Book className="text-white" size={16} />
             </div>
-            <h1 className="text-lg font-bold text-stone-800 dark:text-stone-100">ShelfSpace</h1>
+            <span className="font-extrabold text-stone-800 dark:text-[#e8ddd3] tracking-tight">ShelfSpace</span>
           </div>
-          <button 
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
-          >
-            {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/add"
+              className="px-3 py-1.5 bg-accent-warm text-white text-xs font-bold rounded-lg shadow-sm"
+            >
+              + Add
+            </Link>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-1.5 text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-[#251e16] rounded-lg transition-colors"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </header>
 
         {/* Page Content */}
@@ -109,10 +156,11 @@ export const Layout = ({ children }) => {
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="h-full"
             >
               {children}
             </motion.div>
@@ -123,12 +171,12 @@ export const Layout = ({ children }) => {
       {/* Mobile Overlay */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsMobileMenuOpen(false)}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
           />
         )}
       </AnimatePresence>

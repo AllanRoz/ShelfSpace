@@ -8,46 +8,40 @@ import { Search } from 'lucide-react'
 
 const BookshelfPage = () => {
   const { books } = useLibrary()
-  const [selectedBook, setSelectedBook] = useState(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedBook, setSelectedBook]   = useState(null)
+  const [isModalOpen, setIsModalOpen]     = useState(false)
+  const [searchTerm, setSearchTerm]       = useState('')
+  const [filters, setFilters]             = useState({ genre: '', status: '' })
+  const [sortKey, setSortKey]             = useState('dateAdded')
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filters, setFilters] = useState({ genre: '', status: '' })
-  const [sortKey, setSortKey] = useState('dateAdded')
-
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }))
-  }
+  const handleFilterChange = (key, value) => setFilters(prev => ({ ...prev, [key]: value }))
 
   const handleBookClick = (book) => {
     setSelectedBook(book)
     setIsModalOpen(true)
   }
 
-  const processedBooks = useMemo(() => {
-    return books
-      .filter(book => {
-        const matchesSearch = 
-          book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.genre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          book.isbn.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (book.personalNotes && book.personalNotes.toLowerCase().includes(searchTerm.toLowerCase()))
-
-        const matchesGenre = !filters.genre || book.genre === filters.genre
-        const matchesStatus = !filters.status || book.status === filters.status
-
-        return matchesSearch && matchesGenre && matchesStatus
-      })
-      .sort((a, b) => {
-        if (sortKey === 'rating') return (b.rating || 0) - (a.rating || 0)
-        if (sortKey === 'pages') return b.pages - a.pages
-        if (sortKey === 'dateAdded') return new Date(b.dateAdded) - new Date(a.dateAdded)
-        const valA = (a[sortKey] || '').toString().toLowerCase()
-        const valB = (b[sortKey] || '').toString().toLowerCase()
-        return valA.localeCompare(valB)
-      })
-  }, [books, searchTerm, filters, sortKey])
+  const processedBooks = useMemo(() => books
+    .filter(book => {
+      const q = searchTerm.toLowerCase()
+      const matchesSearch =
+        book.title.toLowerCase().includes(q) ||
+        book.author.toLowerCase().includes(q) ||
+        (book.genre || '').toLowerCase().includes(q) ||
+        (book.isbn || '').toLowerCase().includes(q) ||
+        (book.personalNotes || '').toLowerCase().includes(q)
+      const matchesGenre  = !filters.genre   || book.genre   === filters.genre
+      const matchesStatus = !filters.status  || book.status  === filters.status
+      return matchesSearch && matchesGenre && matchesStatus
+    })
+    .sort((a, b) => {
+      if (sortKey === 'rating')    return (b.rating || 0) - (a.rating || 0)
+      if (sortKey === 'pages')     return (b.pages  || 0) - (a.pages  || 0)
+      if (sortKey === 'dateAdded') return new Date(b.dateAdded) - new Date(a.dateAdded)
+      if (sortKey === 'publicationYear') return (b.publicationYear || 0) - (a.publicationYear || 0)
+      return (a[sortKey] || '').toString().localeCompare((b[sortKey] || '').toString())
+    }),
+  [books, searchTerm, filters, sortKey])
 
   const booksPerShelf = 20
   const shelves = []
@@ -58,73 +52,78 @@ const BookshelfPage = () => {
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
       <header className="mb-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }} 
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-4xl font-bold text-stone-800 dark:text-stone-100">My Library</h1>
-            <p className="text-stone-500 dark:text-stone-400 mt-2">A curated collection of knowledge and stories.</p>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+          <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
+            <h1 className="text-4xl font-extrabold text-stone-800 dark:text-[#e8ddd3] tracking-tight">My Library</h1>
+            <p className="text-stone-500 dark:text-stone-500 mt-1">A curated collection of knowledge and stories.</p>
           </motion.div>
-          <div className="hidden md:block text-right">
-            <span className="text-sm font-medium text-stone-400 uppercase tracking-widest">{processedBooks.length} Volumes Found</span>
-          </div>
+          <span className="hidden md:block text-sm font-semibold text-stone-400 dark:text-stone-600 uppercase tracking-widest">
+            {processedBooks.length} {processedBooks.length === 1 ? 'Volume' : 'Volumes'}
+          </span>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
+        {/* Toolbar */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="flex flex-col md:flex-row gap-4 p-4 bg-white dark:bg-stone-800 rounded-2xl shadow-sm border border-stone-200 dark:border-stone-700"
+          transition={{ delay: 0.15 }}
+          className="flex flex-col md:flex-row gap-3 p-4 bg-white dark:bg-[#1f1a15] border border-stone-200 dark:border-[#2e2720] rounded-2xl shadow-sm"
         >
           <SearchBar value={searchTerm} onChange={setSearchTerm} />
           <FilterBar filters={filters} setFilter={handleFilterChange} sort={sortKey} setSort={setSortKey} />
         </motion.div>
       </header>
 
-      <div className="space-y-16 pb-20">
+      {/* Shelves */}
+      <div className="space-y-16 pb-24">
         {shelves.length > 0 ? shelves.map((shelfBooks, shelfIdx) => (
-          <motion.div 
-            key={shelfIdx} 
-            initial={{ opacity: 0, y: 30 }}
+          <motion.div
+            key={shelfIdx}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + (shelfIdx * 0.1), duration: 0.6 }}
+            transition={{ delay: 0.25 + shelfIdx * 0.08, duration: 0.5 }}
             className="relative"
           >
-            <div className="flex items-end justify-center gap-1 px-4 pb-0 overflow-x-auto no-scrollbar">
+            {/* Books */}
+            <div className="flex items-end justify-center gap-0.5 px-4 overflow-x-auto pb-0">
               {shelfBooks.map((book, bookIdx) => (
                 <motion.div
                   key={book.id}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 + (bookIdx * 0.02), duration: 0.4 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + bookIdx * 0.015, duration: 0.35 }}
                 >
                   <BookSpine book={book} onClick={handleBookClick} />
                 </motion.div>
               ))}
             </div>
 
-            <div className="h-4 w-full bg-stone-800 dark:bg-stone-950 rounded-sm shadow-lg relative">
-              <div className="absolute top-0 left-0 right-0 h-1 bg-stone-700 dark:bg-stone-800 rounded-t-sm" />
-              <div className="absolute inset-0 bg-gradient-to-b from-stone-700/50 to-transparent" />
+            {/* Shelf board */}
+            <div className="relative h-5 w-full bg-gradient-to-b from-[#3d2f1f] to-[#2a1f12] dark:from-[#2a1f12] dark:to-[#1a1008] rounded-sm shadow-lg">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-[#5c442a] dark:bg-[#3d2c18] rounded-t-sm" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/30 rounded-b-sm" />
             </div>
-            
-            <div className="absolute -bottom-2 left-10 w-4 h-4 bg-stone-800 dark:bg-stone-950 rounded-sm" />
-            <div className="absolute -bottom-2 right-10 w-4 h-4 bg-stone-800 dark:bg-stone-950 rounded-sm" />
+
+            {/* Shelf brackets */}
+            <div className="absolute -bottom-3 left-8 w-3 h-8 bg-[#2a1f12] dark:bg-[#1a1008] rounded-b-sm opacity-60" />
+            <div className="absolute -bottom-3 right-8 w-3 h-8 bg-[#2a1f12] dark:bg-[#1a1008] rounded-b-sm opacity-60" />
           </motion.div>
         )) : (
-          <div className="text-center py-20">
-            <div className="inline-flex p-6 bg-stone-100 dark:bg-stone-800 rounded-full mb-4">
-              <Search size={48} className="text-stone-300 dark:text-stone-600" />
+          <div className="flex flex-col items-center justify-center py-32 text-center">
+            <div className="p-6 rounded-full bg-stone-100 dark:bg-[#1f1a15] mb-4">
+              <Search size={40} className="text-stone-300 dark:text-stone-700" />
             </div>
-            <h3 className="text-xl font-bold text-stone-800 dark:text-stone-100">No books found</h3>
-            <p className="text-stone-500 dark:text-stone-400">Try adjusting your search or filters.</p>
+            <h3 className="text-xl font-bold text-stone-700 dark:text-stone-400 mb-2">No books found</h3>
+            <p className="text-stone-400 dark:text-stone-600 text-sm">Try adjusting your search or filters.</p>
           </div>
         )}
       </div>
 
-      <BookDetailModal book={selectedBook} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <BookDetailModal
+        book={selectedBook}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   )
 }

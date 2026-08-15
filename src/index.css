@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-/* Tell Tailwind v4 to use .dark class on <html> for dark mode */
+/* Use .dark class on <html> for dark mode — works with Tailwind v4 */
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* Warm neutral palette inspired by libraries and paper */
-  --color-stone-50: #fafaf9;
+  /* ── Warm neutral palette ── */
+  --color-stone-50:  #fafaf9;
   --color-stone-100: #f5f5f4;
   --color-stone-200: #e7e5e4;
   --color-stone-300: #d6d3d1;
@@ -15,37 +15,50 @@
   --color-stone-700: #44403c;
   --color-stone-800: #292524;
   --color-stone-900: #1c1917;
+  --color-stone-950: #0c0a09;
 
-  --color-accent-warm: #d4a373;
-  --color-accent-dark: #a98467;
-  --color-shelf-wood: #4a3728;
-  --color-shelf-wood-dark: #36281d;
+  /* ── Brand accent — warm parchment gold ── */
+  --color-accent-warm: #c9956a;
+  --color-accent-dark: #a97a52;
+  --color-accent-glow: rgba(201, 149, 106, 0.18);
+
+  /* ── Dark mode surface palette (warm, NOT cool-grey) ── */
+  --color-dark-bg:       #16120e;   /* page background */
+  --color-dark-surface:  #1f1a15;   /* cards */
+  --color-dark-elevated: #27211a;   /* raised cards / modals */
+  --color-dark-border:   #352e25;   /* subtle borders */
+  --color-dark-hover:    #2e271f;   /* hover states */
+
+  /* ── Misc ── */
   --color-paper: #fdfbf7;
 }
 
+/* ── Base reset ── */
 @layer base {
-  html, body {
-    @apply bg-stone-50 text-stone-900 antialiased transition-colors duration-300;
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  html.dark, html.dark body {
-    @apply bg-stone-900 text-stone-100;
+  body {
+    @apply bg-stone-50 text-stone-900 transition-colors duration-300;
+  }
+
+  html.dark body {
+    background-color: var(--color-dark-bg);
+    color: #e8ddd3; /* warm off-white, not harsh pure-white */
   }
 }
 
-/* Custom scrollbar for a premium feel */
-::-webkit-scrollbar {
-  width: 8px;
-}
+/* ── Dark-mode utility aliases ── */
+/* These let us use bg-dark-bg, bg-dark-surface, etc. in Tailwind classes */
+.dark .bg-dark-bg       { background-color: var(--color-dark-bg); }
+.dark .bg-dark-surface  { background-color: var(--color-dark-surface); }
+.dark .bg-dark-elevated { background-color: var(--color-dark-elevated); }
+.dark .border-dark      { border-color: var(--color-dark-border); }
 
-::-webkit-scrollbar-track {
-  @apply bg-stone-100 dark:bg-stone-800;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-stone-300 dark:bg-stone-600 rounded-full;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-stone-400 dark:bg-stone-500;
-}
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { @apply bg-stone-300 dark:bg-stone-700 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-stone-400 dark:bg-stone-600; }
