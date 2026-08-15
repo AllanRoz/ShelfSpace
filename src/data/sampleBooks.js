@@ -1,4 +1,6 @@
-import React from 'react'
+// BASE_URL is '/ShelfSpace/' on GitHub Pages and '/' in dev.
+// This ensures local images from /public resolve correctly in both environments.
+const base = import.meta.env.BASE_URL
 
 export const SAMPLE_BOOKS = [
   {
@@ -9,7 +11,7 @@ export const SAMPLE_BOOKS = [
     pages: 476,
     currentPage: 476,
     publicationYear: 2021,
-    coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?q=80&w=200&h=300&auto=format&fit=crop",
+    coverImage: `book_images/project_hail_mary.jpg`,
     description: "A lone astronaut must save the earth from an extinction-level event.",
     rating: 5,
     status: "Finished",
@@ -24,7 +26,7 @@ export const SAMPLE_BOOKS = [
     pages: 320,
     currentPage: 150,
     publicationYear: 2018,
-    coverImage: "https://images.unsplash.com/photo-1589829085413-5661f0bc7288?q=80&w=200&h=300&auto=format&fit=crop",
+    coverImage: "book_images/atomic_habits.jpg",
     description: "An easy and proven way to build good habits and break bad ones.",
     rating: 4,
     status: "Currently Reading",
